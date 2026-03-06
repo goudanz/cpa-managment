@@ -6,7 +6,7 @@
   "scripts": {
     "dev:frontend": "npm --prefix ../client/Cli-Proxy-API-Management-Center run dev",
     "build:frontend": "npm --prefix ../client/Cli-Proxy-API-Management-Center run build",
-    "build:backend": "test -f src-tauri/bin/cliproxyapi && chmod +x src-tauri/bin/cliproxyapi",
+    "build:backend": "node -e \"const fs=require('fs');const cp=require('child_process');const p=process.platform==='win32'?'src-tauri/bin/cliproxyapi.exe':'src-tauri/bin/cliproxyapi';if(!fs.existsSync(p)){console.error('Missing backend binary:',p);process.exit(1)}if(process.platform!=='win32'){cp.execSync('chmod +x src-tauri/bin/cliproxyapi',{stdio:'inherit'})}\"",
     "build": "npm run build:frontend && npm run build:backend",
     "tauri": "tauri"
   },

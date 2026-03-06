@@ -1,0 +1,64 @@
+name: Release macOS Desktop
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            desktop-official/package-lock.json
+            client/Cli-Proxy-API-Management-Center/package-lock.json
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Install dependencies
+        run: |
+          npm --prefix client/Cli-Proxy-API-Management-Center ci
+          npm --prefix desktop-official ci
+
+      - name: Build backend executable
+        run: |
+          go build -o desktop-official/src-tauri/bin/cliproxyapi ./cmd/server
+          chmod +x desktop-official/src-tauri/bin/cliproxyapi
+
+      - name: Build Tauri bundle
+        run: |
+          cd desktop-official
+          npm run tauri -- build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-bundle
+          path: |
+            desktop-official/src-tauri/target/release/bundle/**
+
+      - name: Publish release assets
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            desktop-official/src-tauri/target/release/bundle/dmg/*.dmg
