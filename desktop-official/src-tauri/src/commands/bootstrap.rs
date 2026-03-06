@@ -45,6 +45,10 @@ fn read_runtime_host_port_from_config(path: &PathBuf) -> Option<(String, u16)> {
     Some((host, port))
 }
 
+fn backend_startup_delays() -> [u64; 10] {
+    [200, 300, 500, 700, 1000, 1500, 2000, 2500, 3000, 4000]
+}
+
 fn read_yaml(path: &PathBuf) -> Result<Value, String> {
     if !path.exists() {
         return Ok(Value::Mapping(Mapping::new()));
@@ -215,8 +219,24 @@ pub(crate) fn initialize_management_secret(
         runtime.child = Some(child);
     }
 
-    let retries = [120_u64, 180, 250, 400, 600, 900];
+    let retries = backend_startup_delays();
     for delay in retries {
+        {
+            let mut runtime = state
+                .runtime
+                .lock()
+                .map_err(|_| "runtime lock poisoned".to_string())?;
+            if let Some(child) = runtime.child.as_mut() {
+                if let Ok(Some(status)) = child.try_wait() {
+                    set_runtime_error(
+                        &mut runtime,
+                        "BACKEND_EXITED",
+                        &format!("backend exited before health probe was ready: {}", status),
+                    );
+                    return Err(runtime.last_error.clone());
+                }
+            }
+        }
         if can_connect(&settings.host, settings.port) {
             let mut runtime = state
                 .runtime
