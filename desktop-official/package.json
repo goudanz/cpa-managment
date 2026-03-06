@@ -1,0 +1,16 @@
+{
+  "name": "cpamc-desktop",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev:frontend": "npm --prefix ../client/Cli-Proxy-API-Management-Center run dev",
+    "build:frontend": "npm --prefix ../client/Cli-Proxy-API-Management-Center run build",
+    "build:backend": "test -f src-tauri/bin/cliproxyapi && chmod +x src-tauri/bin/cliproxyapi",
+    "build": "npm run build:frontend && npm run build:backend",
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

@@ -1,0 +1,71 @@
+# Binaries
+cli-proxy-api
+*.exe
+
+# Desktop (Tauri/React)
+desktop/node_modules/
+desktop/dist/
+desktop/src-tauri/target/
+desktop/src-tauri/gen/
+desktop/src-tauri/.cargo/
+desktop/.vite/
+desktop-official/node_modules/
+desktop-official/src-tauri/target/
+desktop-official/src-tauri/gen/
+desktop-official/src-tauri/.cargo/
+
+# Official client
+client/Cli-Proxy-API-Management-Center/node_modules/
+client/Cli-Proxy-API-Management-Center/dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Configuration
+config.yaml
+.env
+
+# Generated content
+bin/*
+logs/*
+conv/*
+temp/*
+refs/*
+
+# Storage backends
+pgstore/*
+gitstore/*
+objectstore/*
+
+# Static assets
+static/*
+
+# Authentication data
+auths/*
+!auths/.gitkeep
+
+# Documentation
+docs/*
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+
+# Tooling metadata
+.vscode/*
+.codex/*
+.claude/*
+.gemini/*
+.serena/*
+.agent/*
+.agents/*
+.agents/*
+.opencode/*
+opencode.json
+.bmad/*
+_bmad/*
+_bmad-output/*
+
+# macOS
+.DS_Store
+._*

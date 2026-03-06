@@ -1,0 +1,42 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "CLI Proxy API Management Center",
+  "version": "0.0.1",
+  "identifier": "com.routerforme.cpamc.desktop",
+  "build": {
+    "beforeDevCommand": "npm run dev:frontend",
+    "devUrl": "http://localhost:5173",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../../client/Cli-Proxy-API-Management-Center/dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "CLI Proxy API Management Center",
+        "width": 1480,
+        "height": 970,
+        "minWidth": 980,
+        "minHeight": 680,
+        "decorations": true,
+        "transparent": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "resources": [
+      "bin/cliproxyapi"
+    ],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}
