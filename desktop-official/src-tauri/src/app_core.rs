@@ -348,7 +348,7 @@ pub(crate) fn write_runtime_proxy_config(
         settings.usage_statistics_enabled
     ));
     content.push_str("remote-management:\n");
-    content.push_str("  allow-remote: false\n");
+    content.push_str("  allow-remote: true\n");
     let secret_value = settings.management_password.trim();
     if secret_value.is_empty() {
         content.push_str("  secret-key: \"\"\n");

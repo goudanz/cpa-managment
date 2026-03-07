@@ -45,10 +45,6 @@ fn read_runtime_host_port_from_config(path: &PathBuf) -> Option<(String, u16)> {
     Some((host, port))
 }
 
-fn backend_startup_delays() -> [u64; 10] {
-    [200, 300, 500, 700, 1000, 1500, 2000, 2500, 3000, 4000]
-}
-
 fn read_yaml(path: &PathBuf) -> Result<Value, String> {
     if !path.exists() {
         return Ok(Value::Mapping(Mapping::new()));
@@ -77,6 +73,11 @@ fn read_secret_from_value(root: &Value) -> String {
         .unwrap_or_default()
         .trim()
         .to_string()
+}
+
+fn read_secret_written(path: &PathBuf) -> Result<String, String> {
+    let yaml = read_yaml(path)?;
+    Ok(read_secret_from_value(&yaml))
 }
 
 #[tauri::command]
@@ -219,42 +220,23 @@ pub(crate) fn initialize_management_secret(
         runtime.child = Some(child);
     }
 
-    let retries = backend_startup_delays();
-    for delay in retries {
-        {
-            let mut runtime = state
-                .runtime
-                .lock()
-                .map_err(|_| "runtime lock poisoned".to_string())?;
-            if let Some(child) = runtime.child.as_mut() {
-                if let Ok(Some(status)) = child.try_wait() {
-                    set_runtime_error(
-                        &mut runtime,
-                        "BACKEND_EXITED",
-                        &format!("backend exited before health probe was ready: {}", status),
-                    );
-                    return Err(runtime.last_error.clone());
-                }
-            }
-        }
-        if can_connect(&settings.host, settings.port) {
-            let mut runtime = state
-                .runtime
-                .lock()
-                .map_err(|_| "runtime lock poisoned".to_string())?;
-            set_runtime_stage(&mut runtime, "READY");
-            return Ok(());
-        }
-        std::thread::sleep(Duration::from_millis(delay));
+    let written_secret = read_secret_written(&cfg_path)?;
+    if written_secret.trim().is_empty() {
+        let mut runtime = state
+            .runtime
+            .lock()
+            .map_err(|_| "runtime lock poisoned".to_string())?;
+        set_runtime_stage(&mut runtime, "DEGRADED");
+        runtime.error_code = "SECRET_NOT_PERSISTED".to_string();
+        runtime.error_detail = "secret-key is still empty after initialization".to_string();
+        runtime.last_error = format!("{}: {}", runtime.error_code, runtime.error_detail);
+        return Err(runtime.last_error.clone());
     }
 
     let mut runtime = state
         .runtime
         .lock()
         .map_err(|_| "runtime lock poisoned".to_string())?;
-    set_runtime_stage(&mut runtime, "DEGRADED");
-    runtime.error_code = "HEALTH_TIMEOUT".to_string();
-    runtime.error_detail = "backend process started but health probe not ready".to_string();
-    runtime.last_error = format!("{}: {}", runtime.error_code, runtime.error_detail);
-    Err(runtime.last_error.clone())
+    set_runtime_stage(&mut runtime, "READY");
+    Ok(())
 }
